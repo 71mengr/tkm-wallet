@@ -8,23 +8,28 @@
     "dev": "electron . --dev",
     "build": "node scripts/build.js",
     "dist": "npm run build && electron-builder",
-    "dist:windows": "npm run build && electron-builder --win",
+    "dist:windows": "npm run build && electron-builder --win --x64",
+    "dist:windows:32": "npm run build && electron-builder --win --ia32",
     "dist:linux": "npm run build && electron-builder --linux",
     "dist:mac": "npm run build && electron-builder --mac",
-    "dist:all": "npm run build && electron-builder -mwl"
+    "dist:all": "npm run build && electron-builder -mwl",
+    "dist:cross": "npm run build && npm run dist:windows && npm run dist:linux",
+    "postinstall": "electron-builder install-app-deps",
+    "cross": "npm run dist:cross"
   },
   "author": "TKM Chain",
   "license": "MIT",
   "dependencies": {
-    "electron": "^28.0.0",
     "web3": "^1.10.0",
     "electron-store": "^8.1.0",
     "axios": "^1.6.0",
     "node-fetch": "^3.3.0"
   },
   "devDependencies": {
+    "electron": "^28.0.0",
     "electron-builder": "^24.6.4",
-    "electron-rebuild": "^3.2.9"
+    "electron-rebuild": "^3.2.9",
+    "fs-extra": "^11.2.0"
   },
   "build": {
     "appId": "com.tkmchain.wallet",
@@ -40,10 +45,22 @@
     ],
     "win": {
       "target": [
-        "nsis",
-        "portable"
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "ia32"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.ico",
+      "publisherName": "TKM Chain"
     },
     "linux": {
       "target": [
@@ -52,7 +69,8 @@
         "rpm"
       ],
       "icon": "build/icon.png",
-      "category": "Finance"
+      "category": "Finance",
+      "maintainer": "TKM Chain <info@tkmchain.io>"
     },
     "mac": {
       "target": [
@@ -61,6 +79,12 @@
       ],
       "icon": "build/icon.icns",
       "category": "public.app-category.finance"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
     }
   }
 }

@@ -1,0 +1,13 @@
+FROM electronuserland/builder:wine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy source
+COPY . .
+
+# Build for all platforms
+CMD ["npm", "run", "dist:all"]
