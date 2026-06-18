@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>TKM Chain Wallet</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header>
+            <div class="logo">
+                <span class="logo-icon">⛏️</span>
+                <span class="logo-text">TKM Wallet</span>
+            </div>
+            <div class="header-actions">
+                <button class="btn-icon" id="settingsBtn" title="Settings">⚙️</button>
+                <button class="btn-icon" id="minimizeBtn" title="Minimize">─</button>
+                <button class="btn-icon" id="maximizeBtn" title="Maximize">□</button>
+                <button class="btn-icon" id="closeBtn" title="Close">✕</button>
+            </div>
+        </header>
+
+        <!-- Status Bar -->
+        <div class="status-bar" id="statusBar">
+            <div class="status-item">
+                <span class="status-dot online" id="connectionDot"></span>
+                <span id="connectionStatus">Connecting...</span>
+            </div>
+            <div class="status-item">
+                <span>⛓️ Block: </span>
+                <span id="blockNumber">0</span>
+            </div>
+            <div class="status-item">
+                <span>⚡ Diff: </span>
+                <span id="difficulty">0</span>
+            </div>
+            <div class="status-item">
+                <span>�� </span>
+                <span id="walletBalance">0 ANTD</span>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="mobile-nav">
+            <button class="nav-btn active" data-tab="wallet">�� Wallet</button>
+            <button class="nav-btn" data-tab="mining">⛏️ Mining</button>
+            <button class="nav-btn" data-tab="kings">�� Kings</button>
+            <button class="nav-btn" data-tab="settings">⚙️ Settings</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Wallet Tab -->
+            <section id="tab-wallet" class="tab-content active">
+                <div class="balance-card">
+                    <div class="balance-label">Total Balance</div>
+                    <div class="balance-amount" id="mainBalance">0.00</div>
+                    <div class="balance-currency">ANTD</div>
+                    <div class="address-display" id="walletAddress">0x...</div>
+                </div>
+
+                <div class="action-grid">
+                    <button class="action-btn" onclick="sendTransaction()">
+                        <span class="action-icon">��</span>
+                        <span>Send</span>
+                    </button>
+                    <button class="action-btn" onclick="receive()">
+                        <span class="action-icon">��</span>
+                        <span>Receive</span>
+                    </button>
+                    <button class="action-btn" onclick="copyAddress()">
+                        <span class="action-icon">��</span>
+                        <span>Copy</span>
+                    </button>
+                    <button class="action-btn" onclick="viewHistory()">
+                        <span class="action-icon">��</span>
+                        <span>History</span>
+                    </button>
+                </div>
+
+                <!-- Send Form -->
+                <div class="card" id="sendForm" style="display:none;">
+                    <h3>Send ANTD</h3>
+                    <div class="input-group">
+                        <label>Recipient</label>
+                        <input type="text" id="recipientAddress" placeholder="0x...">
+                    </div>
+                    <div class="input-group">
+                        <label>Amount</label>
+                        <input type="number" id="sendAmount" placeholder="0.0" step="0.000001">
+                    </div>
+                    <button class="btn btn-primary" onclick="sendTransaction()">Send</button>
+                    <button class="btn btn-secondary" onclick="hideSendForm()">Cancel</button>
+                </div>
+
+                <!-- Receive Modal -->
+                <div class="card" id="receiveModal" style="display:none;">
+                    <h3>Receive ANTD</h3>
+                    <div class="qr-container">
+                        <canvas id="qrCode"></canvas>
+                    </div>
+                    <div class="address-display" id="receiveAddress">0x...</div>
+                    <button class="btn btn-secondary" onclick="hideReceive()">Close</button>
+                </div>
+            </section>
+
+            <!-- Mining Tab -->
+            <section id="tab-mining" class="tab-content">
+                <div class="mining-card">
+                    <h2>⛏️ RandomX Mining</h2>
+                    <div class="mining-status" id="miningStatus">
+                        <span class="mining-dot idle" id="miningDot"></span>
+                        <span id="miningStatusText">Idle</span>
+                    </div>
+                    <div class="mining-controls">
+                        <button class="btn btn-success" id="startMiningBtn" onclick="startMining()">
+                            ▶️ Start Mining
+                        </button>
+                        <button class="btn btn-danger" id="stopMiningBtn" onclick="stopMining()" style="display:none;">
+                            ⏹️ Stop
+                        </button>
+                    </div>
+                    <div class="input-group">
+                        <label>Threads</label>
+                        <input type="number" id="miningThreads" value="2" min="1" max="64">
+                    </div>
+                    <div class="mining-stats">
+                        <div class="stat">
+                            <span class="stat-value" id="hashRate">0</span>
+                            <span class="stat-label">H/s</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="sharesFound">0</span>
+                            <span class="stat-label">Shares</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-value" id="blocksMined">0</span>
+                            <span class="stat-label">Blocks</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="block-info">
+                    <div class="block-row">
+                        <span>Latest Block</span>
+                        <span class="block-number" id="latestBlock">#0</span>
+                    </div>
+                    <div class="block-row">
+                        <span>Time</span>
+                        <span id="blockTime">--</span>
+                    </div>
+                    <div class="block-row">
+                        <span>Difficulty</span>
+                        <span id="blockDiff">--</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Kings Tab -->
+            <section id="tab-kings" class="tab-content">
+                <h2>�� Rotating Kings</h2>
+                <div class="king-card main-king">
+                    <div class="king-icon">��</div>
+                    <div class="king-info">
+                        <div class="king-label">Main King (10%)</div>
+                        <div class="king-address" id="mainKingAddress">0x...</div>
+                    </div>
+                </div>
+                <div class="king-card rotating-king">
+                    <div class="king-icon">��</div>
+                    <div class="king-info">
+                        <div class="king-label">Rotating King (40%)</div>
+                        <div class="king-address" id="rotatingKingAddress">0x...</div>
+                        <div class="king-detail" id="rotatingKingBlock">Block: --</div>
+                    </div>
+                </div>
+                <div class="king-card miner-king">
+                    <div class="king-icon">⛏️</div>
+                    <div class="king-info">
+                        <div class="king-label">Miner (50%)</div>
+                        <div class="king-address" id="minerAddress">0x...</div>
+                    </div>
+                </div>
+
+                <div class="reward-distribution">
+                    <h3>�� Reward Distribution</h3>
+                    <div class="reward-row">
+                        <span>Main King</span>
+                        <span class="reward-value main" id="mainKingReward">0</span>
+                    </div>
+                    <div class="reward-row">
+                        <span>Rotating King</span>
+                        <span class="reward-value rotating" id="rotatingKingReward">0</span>
+                    </div>
+                    <div class="reward-row">
+                        <span>Miner</span>
+                        <span class="reward-value miner" id="minerReward">0</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Tab -->
+            <section id="tab-settings" class="tab-content">
+                <h2>⚙️ Settings</h2>
+                <div class="settings-group">
+                    <label>RPC URL</label>
+                    <input type="text" id="rpcUrl" value="http://129.151.164.202:8545">
+                    <button class="btn btn-secondary" onclick="saveSettings()">Save</button>
+                </div>
+                <div class="settings-group">
+                    <label>Chain ID</label>
+                    <input type="number" id="chainId" value="12345">
+                </div>
+                <div class="settings-group">
+                    <label>Theme</label>
+                    <select id="theme">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                        <option value="auto">Auto</option>
+                    </select>
+                </div>
+                <div class="settings-group">
+                    <button class="btn btn-danger" onclick="resetWallet()">Reset Wallet</button>
+                    <button class="btn btn-secondary" onclick="exportWallet()">Export Wallet</button>
+                </div>
+                <div class="settings-group">
+                    <div class="version-info">
+                        <span>TKM Wallet v1.0.0</span>
+                        <span>Chain: TKM (RandomX)</span>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <span>⚡ TKM Chain • RandomX • Rotating Kings</span>
+        </footer>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast" style="display:none;"></div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
